@@ -1,10 +1,19 @@
+--[[
+	Meta-data for all entities.
+	Entities are just 
+]]
 local entities = {
-	player = {
-
-	},
-
-	mob = {
-
+	box = {
+		components = {
+			pos = {
+				x = 50, 
+				y = 10
+			},
+			size = {
+				w = 30,
+				h = 40
+			}
+		}
 	}
 }
 

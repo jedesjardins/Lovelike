@@ -30,6 +30,9 @@ function StateManager:getKeys()
 	if(love.keyboard.isDown("escape")) then
 		love.event.quit()
 	end
+	if(love.keyboard.isDown("down")) then
+		keys["down"] = true
+	end
 
 	return keys
 end
