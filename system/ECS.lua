@@ -76,6 +76,20 @@ function Engine:newSystem(o, kind)
 end
 
 --[[
+	add a list of systems to the engine
+	systems must have a kind, a comps list, and a logic 
+	section with the corresponding method
+]]
+function Engine:addSystems(systems)
+	for k, v in pairs(systems) do 
+		-- v is the actual system
+		local sys = self:newSystem(v.logic, v.kind)
+		-- log the components it tracks
+		self:trackComponents(sys, v.comps)
+	end
+end
+
+--[[
 	Adds new components that this system will track
 	This function may be unnecessary
 	params:	system:	system that is tracking new components
