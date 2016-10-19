@@ -83,9 +83,11 @@ end
 	return: N/A
 ]]
 function Engine:trackComponents(system, comps)
+	--[[
 	if type(comps) == "string" then
 		comps = {comps}
 	end
+	]]
 
 	for _, kind in pairs(comps) do
 		if not self.components[kind] then

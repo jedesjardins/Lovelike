@@ -2,8 +2,9 @@
 local StateManager = {}
 
 function StateManager:init()
-	self.states = require("states")
-	self.state = self.states["introState"]
+	-- self.states = require("states")
+	-- self.state = self.states["introState"]
+	self.state = require("introState")
 	self.state:enter()
 end
 
@@ -24,17 +25,8 @@ function StateManager:switchToState(nextState)
 	self.state:enter()
 end
 
-function StateManager:getKeys()
-	local keys = {}
-	
-	if(love.keyboard.isDown("escape")) then
-		love.event.quit()
-	end
-	if(love.keyboard.isDown("down")) then
-		keys["down"] = true
-	end
-
-	return keys
+function StateManager:updateKeys()
+	return self.state:updateKeys()
 end
 
 return StateManager

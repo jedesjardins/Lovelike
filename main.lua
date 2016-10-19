@@ -5,7 +5,7 @@ function love.load()
 	package.path = "tests/?.lua;" .. package.path
 
 	-- require game engine things
-	state = require("State")
+	state = require("StateManager")
 	require("Util")
 	require("ECS")
 
@@ -19,8 +19,8 @@ function love.load()
 end
 
 function love.update(dt)
-	keys = state:getKeys()
-	state:update(1, keys)
+	keys = state:updateKeys()
+	state:update(dt, keys)
 end
 
 function love.draw()
