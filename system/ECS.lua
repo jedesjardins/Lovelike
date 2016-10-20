@@ -13,7 +13,6 @@ Engine = {}
 function Engine:new(o)
 	o = o or {}
 	setmetatable(o, self)
-	o.Components = {}
 	self.__index = self
 
 	-- list of existing entities
@@ -86,6 +85,16 @@ function Engine:addSystems(systems)
 		local sys = self:newSystem(v.logic, v.kind)
 		-- log the components it tracks
 		self:trackComponents(sys, v.comps)
+	end
+end
+
+function Engine:addEntities(entities)
+	for _, e in pairs(entities) do
+		id = self:newEntity()
+
+		for kind, comp in pairs(e) do
+			self:newComponent(comp, id, kind)
+		end
 	end
 end
 

@@ -6,33 +6,15 @@ function introState:enter()
 
 	-- create engine
 	self.engine = Engine:new()
-	
-	-- add the systems to the engine
-	for k, v in pairs(self.systems) do 
-		-- v is the actual system
-		local sys = self.engine:newSystem(v.logic, v.kind)
-		-- log the components it tracks
-		self.engine:trackComponents(sys, v.comps)
-	end
 
-	-- creates and adds an entity
-	id = self.engine:newEntity()
+	-- add systems to the engine
+	self.engine:addSystems(self.systems)
 
-	-- creates and adds two components
-	pos = {x = 10, y = 50}
-	size = {w = 15, h = 30}
-	self.engine:newComponent(pos, id, "pos")
-	self.engine:newComponent(size, id, "size")
+	-- add entities to the engine
+	self.engine:addEntities(self.entities)
 
-	id = self.engine:newEntity()
-
-	pos = {x = 50, y = 50}
-	size = {w = 15, h = 30}
-	con = {true}
-
-	self.engine:newComponent(pos, id, "pos")
-	self.engine:newComponent(size, id, "size")
-	self.engine:newComponent(con, id, "control")
+	-- camera shit
+	self.camera = Camera:new()
 end
 
 function introState:exit()
@@ -52,16 +34,16 @@ function introState:updateKeys()
 
 	local keys = {}
 
-	if love.keyboard.isDown("down") then
+	if love.keyboard.isDown(self.keyBinding["down"]) then
 		keys["down"] = true
 	end
-	if love.keyboard.isDown("up") then
+	if love.keyboard.isDown(self.keyBinding["up"]) then
 		keys["up"] = true
 	end
-	if love.keyboard.isDown("right") then
+	if love.keyboard.isDown(self.keyBinding["right"]) then
 		keys["right"] = true
 	end
-	if love.keyboard.isDown("left") then
+	if love.keyboard.isDown(self.keyBinding["left"]) then
 		keys["left"] = true
 	end
 
@@ -69,7 +51,9 @@ function introState:updateKeys()
 end
 
 function introState:draw()
+	self.camera:set()
 	self.engine:draw()
+	self.camera:unset()
 end
 
 introState.systems = {
@@ -112,7 +96,7 @@ introState.systems = {
 
 	render = {
 		kind = "draw",
-		comps = {"pos", "size", "sprite"},
+		comps = {"pos", "size", "sprite", "layer"}, -- sprite component will have sprite and layer
 		logic = {
 			draw = function(self)
 				-- self["pos"] maps entity id to pos component
@@ -127,12 +111,44 @@ introState.systems = {
 						local w = vSize["w"]
 						local h = vSize["h"]
 
-						love.graphics.rectangle("fill", x, y, w, h)
+						local filePath = "resources/" .. self["sprite"][k]["file"]
+						image = image or love.graphics.newImage("resources/" .. self["sprite"][k]["file"])
+
+						quad = quad or love.graphics.newQuad(0, 0, 24, 32, 72, 128)
+
+						love.graphics.draw(image, quad, x, y)
+						-- love.graphics.rectangle("fill", x, y, w, h)
 					end
 				end
 			end
 		}
 	}
+}
+
+introState.entities = {
+	camera = {
+		cam = {},
+		pos = {0, 0}
+	},
+	player = {
+		pos = {x = 100, y = 100},
+		size = {w = 15, h = 15},
+		control = {true},
+		sprite = {file = "Detective.png"}
+	}
+	--[[,
+	enemy = {
+		pos = {x = 10, y = 10},
+		size = {w = 30, h = 30}
+	}
+	]]
+}
+
+introState.keyBinding = {
+	up = "up",
+	down = "down",
+	left = "left",
+	right = "right"
 }
 
 return introState
