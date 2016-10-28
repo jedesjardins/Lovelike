@@ -11,19 +11,21 @@ function introState:enter()
 	self.engine:addSystems(self.systems)
 
 	-- add entities to the engine
-	self.engine:addEntities(self.entities)
+	-- adds default camera
+	self.engine:addEntity(self.entities["camera"])
 
-	-- camera shit
-	self.camera = Camera:new()
+	-- adds default player
+	e = self.engine:addEntity(self.entities["player"])
+	-- overwrites the previous position of the entity e (player)
+	self.engine:newComponent({x = 0, y = 0}, e, "pos")
 end
 
 function introState:exit()
-	--print("Exiting introState")
+
 end
 
 function introState:update(dt, keys)
 	self.engine:update(dt, keys)
-	--print("Updating introState")
 	--return "nextState"
 end
 
@@ -51,12 +53,29 @@ function introState:updateKeys()
 end
 
 function introState:draw()
-	self.camera:set()
 	self.engine:draw()
-	self.camera:unset()
 end
 
 introState.systems = {
+	camera = {
+		kind = "update",
+		comps = {"pos", "cam"},
+		logic = {
+			update = function(self, dt, keys)
+				-- example camera transformation
+				-- creates a constant left
+				for id, cam in pairs(self["cam"]) do
+					pos = self["pos"][id]
+					pos["x"] = pos["x"] + 1
+
+					x, y = pos["x"], pos["y"]
+
+					--love.graphics.translate(-x, -y)
+				end
+			end
+		}	
+	},
+
 	movement = {
 		kind = "update",
 		comps = {"pos", "control"},
@@ -94,56 +113,105 @@ introState.systems = {
 		}
 	},
 
-	render = {
-		kind = "draw",
-		comps = {"pos", "size", "sprite", "layer"}, -- sprite component will have sprite and layer
+	entityCollision = {
+		kind = "update",
+		comps = {"pos", "collision"},
 		logic = {
-			draw = function(self)
-				-- self["pos"] maps entity id to pos component
-
-				for k, vPos in pairs(self["pos"]) do
-
-					local vSize = self["size"][k]
-					if vSize then
-						local x = vPos["x"]
-						local y = vPos["y"]
-						local size = self["size"][k]
-						local w = vSize["w"]
-						local h = vSize["h"]
-
-						local filePath = "resources/" .. self["sprite"][k]["file"]
-						image = image or love.graphics.newImage("resources/" .. self["sprite"][k]["file"])
-
-						quad = quad or love.graphics.newQuad(0, 0, 24, 32, 72, 128)
-
-						love.graphics.draw(image, quad, x, y)
-						-- love.graphics.rectangle("fill", x, y, w, h)
-					end
-				end
+			update = function(self, dt, keys)
 			end
 		}
-	}
+	},
+
+	render = {
+		kind = "draw",
+		comps = {"cam", "pos", "size", "sprite", "layer"}, -- sprite component will have sprite and layer
+		logic = {
+			draw = function(self)
+				-- use: self["component name"] to get component list
+
+				-- sort all drawable objects by layer
+				local layersToId = {}
+				local layers = {}
+
+				-- place ids into specific layers
+				for id, layerC in pairs(self["layer"]) do
+					local layer = layerC[1]
+					layersToId[layer] = layersToId[layer] or {}
+					table.insert(layers, layer)
+					table.insert(layersToId[layer], id)
+				end
+
+				-- sort layers so 
+				table.sort(layers)
+
+				for _, layer in ipairs(layers) do
+
+					idTable = layersToId[layer]
+
+					-- set camera, applies camera transformations
+					self:set(self["pos"][1])
+
+					-- draw all objects on layer, iterate
+					for _, id in pairs(idTable) do 
+						local pos = self["pos"][id]
+						local sprite = self["sprite"][id]
+						if pos and sprite then
+							image = image or love.graphics.newImage("resources/" .. sprite["file"])
+
+							fw, fh = sprite["frameSize"]["w"], sprite["frameSize"]["h"]
+							iw, ih = image:getDimensions()
+
+
+							quad = quad or love.graphics.newQuad(0, 0, fw, fh, iw, ih)
+
+							x, y = pos["x"], pos["y"]
+							love.graphics.draw(image, quad, x, y)
+						end
+					end
+
+					-- removes camera transformations
+					self:unset()
+				end
+			end,
+			set = function(self, pos)
+				-- pushes frame to graphics stack 
+				love.graphics.push()
+				-- translates camera position by x and y of camera
+				love.graphics.translate(-pos["x"], -pos["y"])
+			end,
+			unset = function(self)
+				love.graphics.pop()
+			end
+		}
+	},
 }
 
+-- default entities
 introState.entities = {
 	camera = {
 		cam = {},
-		pos = {0, 0}
+		pos = {x = 0, y = 0}
 	},
 	player = {
-		pos = {x = 100, y = 100},
-		size = {w = 15, h = 15},
+		pos = {x = 50, y = 50},
 		control = {true},
-		sprite = {file = "Detective.png"}
+		collision = {tl = {}, tr = {}, bl = {}, br = {}},
+		state = "down",
+		sprite = {
+			file = "Detective.png", 
+			frameSize = {w = 24, h = 32}},
+			frame = 0,
+			stateToY = {
+				down = 0,
+				up = 1,
+				left = 2,
+				right = 3
+		},
+		layer = {1}
 	}
-	--[[,
-	enemy = {
-		pos = {x = 10, y = 10},
-		size = {w = 30, h = 30}
-	}
-	]]
 }
 
+-- keybinding matches action to keycode
 introState.keyBinding = {
 	up = "up",
 	down = "down",

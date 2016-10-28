@@ -32,7 +32,7 @@ end
 	return: id of entity created
 ]]
 function Engine:newEntity()
-	id = self.entities:add()
+	local id = self.entities:add()
 	return id
 end
 
@@ -90,12 +90,22 @@ end
 
 function Engine:addEntities(entities)
 	for _, e in pairs(entities) do
-		id = self:newEntity()
+		local id = self:newEntity()
 
 		for kind, comp in pairs(e) do
 			self:newComponent(comp, id, kind)
 		end
 	end
+end
+
+function Engine:addEntity(entity)
+	local id = self:newEntity()
+
+	for kind, comp in pairs(entity) do
+		self:newComponent(comp, id, kind)
+	end
+
+	return id
 end
 
 --[[
@@ -106,12 +116,6 @@ end
 	return: N/A
 ]]
 function Engine:trackComponents(system, comps)
-	--[[
-	if type(comps) == "string" then
-		comps = {comps}
-	end
-	]]
-
 	for _, kind in pairs(comps) do
 		if not self.components[kind] then
 			self.components[kind] = Util.Map:new()
