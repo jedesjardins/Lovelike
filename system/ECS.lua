@@ -23,6 +23,8 @@ function Engine:new(o)
 	o.updateSystems = {}
 	-- draw systems
 	o.drawSystems = {}
+	--
+	o.initSystems = {}
 	return o
 end
 
@@ -68,6 +70,8 @@ function Engine:newSystem(o, kind)
 		systemList = self.updateSystems
 	elseif kind == "draw" then
 		systemList = self.drawSystems
+	elseif kind == "init" then
+		systemList = self.initSystems
 	end
 	o = o or {}
 	table.insert(systemList, o)
@@ -86,6 +90,13 @@ function Engine:addSystems(systems)
 		-- log the components it tracks
 		self:trackComponents(sys, v.comps)
 	end
+
+	compare = function(a, b)
+		return (a["priority"] or 2) < (b["priority"] or 2)
+	end
+
+	table.sort(self.updateSystems, compare)
+	table.sort(self.drawSystems, compare)
 end
 
 function Engine:addEntities(entities)
@@ -132,6 +143,11 @@ end
 ]]
 function Engine:update(dt, keys)
 	-- iterate update Systems list and call update on them
+	for k, v in pairs(self.initSystems) do
+		v:init()
+		self.initSystems[k] = nil
+	end
+
 	for _, v in pairs(self.updateSystems) do
 		v:update(dt, keys)
 	end
