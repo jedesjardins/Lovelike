@@ -23,7 +23,6 @@ function introState:enter()
 end
 
 function introState:exit()
-
 end
 
 function introState:update(dt, keys)
@@ -69,10 +68,6 @@ introState.systems = {
 				for id, cam in pairs(self["cam"]) do
 					pos = self["pos"][id]
 					pos["x"] = pos["x"] + 1
-
-					x, y = pos["x"], pos["y"]
-
-					--love.graphics.translate(-x, -y)
 				end
 			end
 		}	
@@ -169,11 +164,12 @@ introState.systems = {
 
 	renderMap = {
 		kind = "draw",
-		comps = {"cam", "map"},
+		comps = {"cam", "map", "pos"},
 		logic = {
 			draw = function(self)
 				local cam = self["cam"][1]
 				local map = self["map"][2]
+
 
 				if not map["canvas"] then
 					map["tilesheet"]["image"] = love.graphics.newImage("resources/" .. map["tilesheet"]["file"])
@@ -203,7 +199,12 @@ introState.systems = {
 				screen = cam["canvases"][4]
 
 				love.graphics.setCanvas(screen)
+
+				-- TODO: Work with flexible 
+				love.graphics.push()
+				love.graphics.translate(-self["pos"][1]["x"], -self["pos"][1]["y"])
 				love.graphics.draw(mapImage)
+				love.graphics.pop()
 			end
 		}
 	},
@@ -242,6 +243,9 @@ introState.systems = {
 
 					love.graphics.setCanvas(canvas)
 
+					love.graphics.push()
+					love.graphics.translate(-self["pos"][1]["x"], -self["pos"][1]["y"])
+					
 
 					idTable = layersToId[layer]
 
@@ -265,6 +269,7 @@ introState.systems = {
 
 					love.graphics.setCanvas()
 					love.graphics.draw(canvas)
+					love.graphics.pop()
 				end
 			end
 		}
@@ -311,7 +316,6 @@ introState.systems = {
 					love.graphics.draw(canvas)
 				end
 			end
-	
 		}
 	}
 }
@@ -357,7 +361,6 @@ introState.entities = {
 	player = {
 		pos = {x = 50, y = 50},
 		control = {true},
-		collision = {tl = {}, tr = {}, bl = {}, br = {}},
 		state = "down",
 		sprite = {
 			image = nil,
