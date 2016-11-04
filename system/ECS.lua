@@ -58,13 +58,24 @@ function Engine:newComponent(o, id, kind)
 	return o
 end
 
+function Engine:removeComponent(id, kind)
+	-- Make map of id to component for this type 
+	if not self.components[kind] then
+		self.components[kind] = Util.Map:new()
+	end
+	local map = self.components[kind]
+
+	-- track this component for the passed in type
+	map:remove(id)
+end
+
 --[[
 	Creates a new system, wrapper for logic
 	params:	o:		system passed in
 			kind: 	type of the system, either draw or update
 	return: system created (unnecessary?)
 ]]
-function Engine:newSystem(o, kind)
+function Engine:newSystem(o, kind, comps)
 	local systemList = 0
 	if kind == "update" then
 		systemList = self.updateSystems
@@ -75,7 +86,14 @@ function Engine:newSystem(o, kind)
 	end
 	o = o or {}
 	table.insert(systemList, o)
+
+	self:trackComponents(o, comps)
 	return o
+end
+
+-- TODO: This does not account for priority
+function Engine:addSystem(system)
+	local sys = self:newSystem(system.logic, system.kind, system.comps)
 end
 
 --[[
@@ -86,11 +104,13 @@ end
 function Engine:addSystems(systems)
 	for k, v in pairs(systems) do 
 		-- v is the actual system
-		local sys = self:newSystem(v.logic, v.kind)
-		-- log the components it tracks
-		self:trackComponents(sys, v.comps)
+		local sys = self:newSystem(v.logic, v.kind, v.comps)
 	end
 
+	self:sortSystems()
+end
+
+function Engine:sortSystems()
 	compare = function(a, b)
 		return (a["priority"] or 2) < (b["priority"] or 2)
 	end
@@ -101,19 +121,16 @@ end
 
 function Engine:addEntities(entities)
 	for _, e in pairs(entities) do
-		local id = self:newEntity()
-
-		for kind, comp in pairs(e) do
-			self:newComponent(comp, id, kind)
-		end
+		addEntity(e)
 	end
 end
 
+-- deep copy is used so data of entity is original, but images and shit is reused
 function Engine:addEntity(entity)
 	local id = self:newEntity()
 
 	for kind, comp in pairs(entity) do
-		self:newComponent(comp, id, kind)
+		self:newComponent(deepCopy(comp), id, kind)
 	end
 
 	return id

@@ -8,7 +8,6 @@ function love.load()
 	state = require("StateManager")
 	require("Util")
 	require("ECS")
-	require("Camera")
 
 	--[[
 	--tests

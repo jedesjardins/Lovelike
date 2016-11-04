@@ -67,7 +67,7 @@ introState.systems = {
 				-- creates a constant left
 				for id, cam in pairs(self["cam"]) do
 					pos = self["pos"][id]
-					pos["x"] = pos["x"] + 1
+					pos["x"] = pos["x"] - 1
 				end
 			end
 		}	
@@ -188,8 +188,8 @@ introState.systems = {
 						for x, val in pairs(row) do
 							local tile = map["tiles"][y][x]
 							local quad = map["tilesheet"]["quads"][tile]
-							love.graphics.draw(tilesheet, quad, (x-1)*24, (y-1)*24)
 
+							love.graphics.draw(tilesheet, quad, (x-1)*24, (y-1)*24)
 						end
 					end
 				end
@@ -239,16 +239,17 @@ introState.systems = {
 
 				-- create a canvas for each layer
 				for _, layer in pairs(layers) do
+
+					-- initialize drawing
 					local canvas = canvases[layer]
-
 					love.graphics.setCanvas(canvas)
-
 					love.graphics.push()
 					love.graphics.translate(-self["pos"][1]["x"], -self["pos"][1]["y"])
 					
 
-					idTable = layersToId[layer]
+					local idTable = layersToId[layer]
 
+					-- TODO: ensure entities have all required components
 					for _, id in pairs(idTable) do 
 						local pos = self["pos"][id]
 						local sprite = self["sprite"][id]
@@ -266,9 +267,6 @@ introState.systems = {
 							love.graphics.draw(image, quad, x, y)
 						end
 					end
-
-					love.graphics.setCanvas()
-					love.graphics.draw(canvas)
 					love.graphics.pop()
 				end
 			end

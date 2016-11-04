@@ -69,14 +69,32 @@ end
 
 -- recursively prints all elements in a table
 function printAllElements(k, v, format)
+	if not format then
+		format = ""
+	end
 	if type(v) == "table" then
-		printf(format .. "%s:\n", k)
+		printf(format .. "%s: %s\n", k, v)
 		for i, j in pairs(v) do 
 			printAllElements(i, j, format .."\t")
 		end
 	else
 		printf(format .. "%s: " .. "%s\n", k, v) 
 	end
+end
+
+function deepCopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepCopy(orig_key)] = deepCopy(orig_value)
+        end
+        setmetatable(copy, deepCopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
 end
 
 return Util

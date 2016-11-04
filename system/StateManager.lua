@@ -4,7 +4,9 @@ local StateManager = {}
 function StateManager:init()
 	-- self.states = require("states")
 	-- self.state = self.states["introState"]
-	self.state = require("introState")
+	require("State")
+	require("entities")
+	self.state = require("testState")
 	self.state:enter()
 end
 
