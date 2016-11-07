@@ -7,13 +7,6 @@ function love.load()
 	-- require game engine things
 	state = require("StateManager")
 	require("Util")
-	require("ECS")
-
-	--[[
-	--tests
-	require("ECStest")
-	runTests()
-	]]
 
 	state:init()
 end

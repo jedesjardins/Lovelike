@@ -57,7 +57,7 @@ end
 function Entity:send(message)
 	local components = self.components
 	for _, comp in pairs(components or {}) do
-		comp:receive(message)
+		comp:receive(message, self)
 	end
 end
 
@@ -74,16 +74,24 @@ end
 
 Component = {}
 
-function Component:new()
+function Component:new(listOptions)
 	local o = {}
 	setmetatable(o, self)
 	self.__index = self
+	o:init(listOptions)
 	return o
+end
+
+function Component:init(listOptions)
+	for k, v in pairs(listOptions or {}) do
+		self[k] = v
+	end
 end
 
 function Component:receive(message)
 	-- handle messages
-	print(message)
+	-- print(message)
 end
 
 require("components")
+require("entities")
