@@ -14,14 +14,12 @@ function List:new(o)
 	o = o or {}
 	setmetatable(o, self)
 	self.__index = self
-	-- o.size = 0
 	return o
 end
 
 function List:add(o)
 	local i = #self + 1
 	self[i] = o or true
-	-- self.size = self.size + 1
 	return i
 end
 

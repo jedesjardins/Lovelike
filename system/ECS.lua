@@ -8,7 +8,7 @@
 	Systems are logic and containers for components
 ]]
 
-Engine = {}
+local Engine = {}
 
 function Engine:new(o)
 	o = o or {}

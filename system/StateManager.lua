@@ -6,7 +6,7 @@ function StateManager:init()
 	-- self.state = self.states["introState"]
 	require("State")
 	require("entities")
-	self.state = require("testState")
+	self.state = require("tState")
 	self.state:enter()
 end
 

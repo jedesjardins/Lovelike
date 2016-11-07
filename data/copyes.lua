@@ -1,63 +1,100 @@
-local introState = {}
 
-function introState:enter()
-	-- load systems metadata
-	-- local systems = require("systems")
+function findEntity(kind, subkind)
 
-	-- create engine
-	self.engine = Engine:new()
-
-	-- add systems to the engine
-	self.engine:addSystems(self.systems)
-
-	-- add entities to the engine
-	-- adds default camera
-	self.engine:addEntity(self.entities["camera"])
-	self.engine:addEntity(self.entities["fixedmap"])
-
-	-- adds default player
-	e = self.engine:addEntity(self.entities["player"])
-
-	-- overwrites the previous position of the entity e (player)
-	self.engine:newComponent({x = 0, y = 0}, e, "pos")
-end
-
-function introState:exit()
-end
-
-function introState:update(dt, keys)
-	self.engine:update(dt, keys)
-	--return "nextState"
-end
-
-function introState:updateKeys()
-	if love.keyboard.isDown("escape") then
-		love.event.quit()
+	if kind == "entity" then
+		ret = entities[subkind]
+	elseif kind == "camera" then
+	    ret = cameras[subkind]
+	elseif kind == "map" then
+		ret = maps[subkind]
 	end
 
-	local keys = {}
-
-	if love.keyboard.isDown(self.keyBinding["down"]) then
-		keys["down"] = true
+	if ret then
+		return ret
+	else
+		print("That type of entity does not exist", kind, subkind)
 	end
-	if love.keyboard.isDown(self.keyBinding["up"]) then
-		keys["up"] = true
-	end
-	if love.keyboard.isDown(self.keyBinding["right"]) then
-		keys["right"] = true
-	end
-	if love.keyboard.isDown(self.keyBinding["left"]) then
-		keys["left"] = true
-	end
-
-	return keys
 end
 
-function introState:draw()
-	self.engine:draw()
+function findSystem(kind)
+	ret = systems[kind]
+
+	if ret then
+		return ret
+	else
+		print("That system does not exist", kind, subkind)
+	end
 end
 
-introState.systems = {
+--[[
+	nil components are those that must be created when we make the enitity
+	otherwise each entity will be affected by changes to other entities
+]]
+entities = {
+	player = {
+		pos = nil, --{x = 50, y = 50},
+		state = {
+			face = "left",
+			action = "stand"
+		},
+		control = {true},
+		sprite = {
+			file = "Detective.png",
+			frame = 0, 
+			image = love.graphics.newImage("resources/" .. "Detective.png"),
+			frameSize = {w = 24, h = 32},
+			imageSize = {w = 72, h = 128},
+			dirToY = {
+				down = 0, up = 1, left = 2, right = 3
+			},
+			frameToX = {
+				[0] = 0, [1] = 1, [2] = 0, [3] = 2
+			}
+
+		},
+		layer = {2}
+	}
+}
+
+cameras = {
+	layered = {
+		cam = {
+			canvases = {},
+			layers = {}
+		},
+		pos = {x = 0, y = 0}
+	}
+}
+
+maps = {
+	simple = {
+		map = {	
+			tiles = {							-- background map data
+				{0,0,0,0,0,0,0,0},
+				{0,1,1,1,1,1,1,0},
+				{0,1,1,1,1,1,1,0},
+				{0,1,1,1,1,1,1,0},
+				{0,1,1,1,1,1,1,0},
+				{0,1,1,1,1,1,1,0},
+				{0,1,1,1,1,1,1,0},
+				{0,0,0,0,0,0,0,0},
+			},							
+			canvas = nil,						-- permanent image representing map
+			tilesheet = {						-- holds the image data of the tileset
+				image = nil,
+				quads = {
+					[0] = love.graphics.newQuad(0, 0, 24, 24, 240, 240),
+					[1] = love.graphics.newQuad(24, 0, 24, 24, 240, 240)
+				},					
+				file = "Tileset.png",			-- file path
+				frameSize = {w = 24, h = 24}	-- size of a frame
+			}
+		},
+		layer = {1}
+	}
+}
+
+systems = {
 	camera = {
 		kind = "update",
 		comps = {"pos", "cam"},
@@ -73,15 +110,45 @@ introState.systems = {
 		}	
 	},
 
-	movement = {
+	playerStateFromInput = {
 		kind = "update",
-		comps = {"pos", "control"},
+		comps = {"control", "state"},
+		logic = {
+			update = function(self, dt, keys)
+				for id, control in pairs(self["control"]) do
+					local oldState = self["state"][id]
+					local potential
+				end
+			end
+		}
+	},
+
+	spriteMovement = {
+		kind = "update",
+		comps = {"pos", "state"},
+		logic = {
+			update = function(self, dt, keys)
+				for id, state in pairs(self["state"]) do
+					if state["face"] == "down" and state["action"] == "walk" then
+						local pos = self["pos"][id]
+						pos["y"] = pos["y"] + 2.5
+					end
+				end
+			end
+		}
+	},
+
+	-- TODO: Optimize the loops finding controlable entities
+	playerMovement = {
+		kind = "update",
+		comps = {"pos", "control", "state"},
 		logic = {
 			update = function(self, dt, keys)
 				if keys["down"] then
 					for k, v in pairs(self["pos"]) do
 						if self["control"][k] then
 							v["y"] = v["y"] + 2.5
+							self["state"][k] = "down"
 						end
 					end
 				end
@@ -89,6 +156,7 @@ introState.systems = {
 					for k, v in pairs(self["pos"]) do
 						if self["control"][k] then
 							v["y"] = v["y"] - 2.5
+							self["state"][k] = "up"
 						end
 					end
 				end
@@ -96,6 +164,7 @@ introState.systems = {
 					for k, v in pairs(self["pos"]) do
 						if self["control"][k] then
 							v["x"] = v["x"] - 2.5
+							self["state"][k] = "left"
 						end
 					end
 				end
@@ -103,6 +172,7 @@ introState.systems = {
 					for k, v in pairs(self["pos"]) do
 						if self["control"][k] then
 							v["x"] = v["x"] + 2.5
+							self["state"][k] = "right"
 						end
 					end
 				end
@@ -211,10 +281,9 @@ introState.systems = {
 
 	renderSprites = {
 		kind = "draw",		
-		comps = {"cam", "sprite", "pos", "layer"},
+		comps = {"cam", "sprite", "state", "pos", "layer"},
 		logic = {
 			draw = function(self)
-
 				-- sort all drawable objects by layer
 				local layersToId = {}	-- maps each layer to lists of
 				local allLayers = {}
@@ -246,28 +315,34 @@ introState.systems = {
 					love.graphics.push()
 					love.graphics.translate(-self["pos"][1]["x"], -self["pos"][1]["y"])
 					
-
+					-- get the ids of entities on this layer
 					local idTable = layersToId[layer]
 
 					-- TODO: ensure entities have all required components
 					for _, id in pairs(idTable) do 
 						local pos = self["pos"][id]
 						local sprite = self["sprite"][id]
-						if pos and sprite then
-							sprite["image"] = sprite["image"] or love.graphics.newImage("resources/" .. sprite["file"])
-							local image = sprite["image"]
-
-							fw, fh = sprite["frameSize"]["w"], sprite["frameSize"]["h"]
-							iw, ih = image:getDimensions()
-
-
-							quad = quad or love.graphics.newQuad(0, 0, fw, fh, iw, ih)
-
-							x, y = pos["x"], pos["y"]
-							love.graphics.draw(image, quad, x, y)
-						end
+						local state = self["state"][id]
+						self:renderSprite(pos, sprite, state)
 					end
 					love.graphics.pop()
+				end
+			end,
+
+			renderSprite = function(self, pos, sprite, state)
+				if pos and sprite and state then
+					local image = sprite["image"]
+					local face = state["face"]
+					local action = state["action"]
+
+					local x = 0
+					local y = sprite["dirToY"][face]
+					local w, h = sprite["frameSize"]["w"], sprite["frameSize"]["h"]
+					local iw, ih = sprite["imageSize"]["w"], sprite["imageSize"]["h"]
+
+					local quad = love.graphics.newQuad(x*w, y*h, w, h, iw, ih)
+
+					love.graphics.draw(image, quad, math.floor(pos["x"]), math.floor(pos["y"]))
 				end
 			end
 		}
@@ -280,7 +355,6 @@ introState.systems = {
 		logic = {
 			priority = 3,
 			draw = function(self)
-
 				-- TODO: track layers somehow? this is sloppy
 
 				-- sort all drawable objects by layer
@@ -317,72 +391,3 @@ introState.systems = {
 		}
 	}
 }
-
--- default entities
-introState.entities = {
-	camera = {
-		cam = {
-			canvases = {},
-			layers = {}
-		},
-		pos = {x = 0, y = 0}
-	},
-
-	fixedmap = {
-		map = {	
-			tiles = {							-- background map data
-				{0,0,0,0,0,0,0,0},
-				{0,1,1,1,1,1,1,0},
-				{0,1,1,1,1,1,1,0},
-				{0,1,1,1,1,1,1,0},
-				{0,1,1,1,1,1,1,0},
-				{0,1,1,1,1,1,1,0},
-				{0,1,1,1,1,1,1,0},
-				{0,0,0,0,0,0,0,0},
-			},							
-			canvas = nil,						-- permanent image representing map
-			tilesheet = {						-- holds the image data of the tileset
-				image = nil,
-				quads = {
-					[0] = love.graphics.newQuad(0, 0, 24, 24, 240, 240),
-					[1] = love.graphics.newQuad(24, 0, 24, 24, 240, 240)
-				},					
-				file = "Tileset.png",			-- file path
-				frameSize = {w = 24, h = 24}	-- size of a frame
-			}
-		},
-		layer = {1}
-	},
-
-	-- TODO: should images and objects for entitiesbe loaded here?
-	-- That way all objects can share image, default quads, etc.
-	player = {
-		pos = {x = 50, y = 50},
-		control = {true},
-		state = "down",
-		sprite = {
-			image = nil,
-			quads = nil,
-			file = "Detective.png", 
-			frameSize = {w = 24, h = 32},
-			frame = 0,
-			stateToY = {
-				down = 0,
-				up = 1,
-				left = 2,
-				right = 3
-			}
-		},
-		layer = {3}
-	}
-}
-
--- keybinding matches action to keycode
-introState.keyBinding = {
-	up = "up",
-	down = "down",
-	left = "left",
-	right = "right"
-}
-
-return introState
