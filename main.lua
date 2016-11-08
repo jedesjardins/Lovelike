@@ -7,6 +7,7 @@ function love.load()
 	-- require game engine things
 	state = require("StateManager")
 	require("Util")
+	require("Engine")
 
 	state:init()
 end

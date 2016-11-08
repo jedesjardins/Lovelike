@@ -66,14 +66,18 @@ printf = function(s,...)
 end
 
 -- recursively prints all elements in a table
-function printAllElements(k, v, format)
-	if not format then
-		format = ""
-	end
+function printChildren(k, v, format, seen)
+	seen = seen or {}
+	format = format or ""
 	if type(v) == "table" then
-		printf(format .. "%s: %s\n", k, v)
-		for i, j in pairs(v) do 
-			printAllElements(i, j, format .."\t")
+		if not seen[v] then
+			printf(format .. "%s: %s\n", k, v)
+			seen[v] = true
+			for i, j in pairs(v) do 
+				printChildren(i, j, format .."\t", seen)
+			end
+		else
+			printf("duplicate %s %s\n", k, v)
 		end
 	else
 		printf(format .. "%s: " .. "%s\n", k, v) 

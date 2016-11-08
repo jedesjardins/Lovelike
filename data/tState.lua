@@ -2,16 +2,16 @@
 local state = State:new()
 
 function state:enter()
-	require("Engine")
 
 	engine = Engine:new()
 	--camera = Camera:new()
 
-	local entity = Entity:new()
-
-	entity:addComponents(player)
+	local entity = Entity:new(player)
 
 	engine:registerEntity(entity)
+
+	engine:registerEntity(entity)
+
 end
 
 function state:update(dt, keys)
