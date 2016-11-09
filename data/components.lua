@@ -1,4 +1,50 @@
 
+--[[
+	General Camera components 
+]]
+
+cameraPosition = Component:new()
+
+function cameraPosition:update()
+	if self.locked then 
+		local x, y = self.getEntityXY()
+		self.x = x - self.offsetX
+		self.y = y - self.offsetY
+	end
+end
+
+function cameraPosition:receive()
+
+end
+
+function cameraPosition:lockToEntity(entity, options)
+	local pos = entity.components["position"]
+
+	if pos then
+		-- get closure
+		self.getEntityXY = pos:getClosure({"x", "y"})
+		local x, y = self.getEntityXY()
+		if options == "center" then
+			local wWidth, wHeight = love.graphics.getDimensions()
+			local wFrame = entity.components["draw"]["frameW"]
+			local hFrame = entity.components["draw"]["frameH"]
+			self.offsetX = math.floor(wWidth/2 - wFrame/2)
+			self.offsetY = math.floor(wHeight/2 - hFrame/2)
+		else
+			self.offsetX = x - self.x
+			self.offsetY = y - self.y
+		end
+		self.locked = true
+	else
+		print("Entity has no position")
+	end
+end
+
+
+--[[
+	General player components
+]]
+
 playerInput = Component:new()
 
 function playerInput:update(dt, keys, e)
@@ -77,6 +123,8 @@ function drawSprite:receive(message)
 		end
 	end
 end
+
+layerSprite = Component:new()
 
 playerStateMachine = Component:new()
 

@@ -77,7 +77,7 @@ function printChildren(k, v, format, seen)
 				printChildren(i, j, format .."\t", seen)
 			end
 		else
-			printf("duplicate %s %s\n", k, v)
+			printf( format .. "duplicate %s %s\n", k, v)
 		end
 	else
 		printf(format .. "%s: " .. "%s\n", k, v) 
@@ -85,18 +85,18 @@ function printChildren(k, v, format, seen)
 end
 
 function deepCopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepCopy(orig_key)] = deepCopy(orig_value)
-        end
-        setmetatable(copy, deepCopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
+	local orig_type = type(orig)
+	local copy
+	if orig_type == 'table' then
+		copy = {}
+		for orig_key, orig_value in next, orig, nil do
+			copy[deepCopy(orig_key)] = deepCopy(orig_value)
+		end
+		setmetatable(copy, deepCopy(getmetatable(orig)))
+	else -- number, string, boolean, etc
+		copy = orig
+	end
+	return copy
 end
 
 return Util
