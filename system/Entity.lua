@@ -10,6 +10,7 @@ function Entity:new(comps, parent, children)
 	--o.drawCs = {}
 	o.parent = parent
 	o.children = {}
+	o.commandQ = Util.Stack:new()
 	o:addComponents(comps)
 	o:registerDepends()
 	o:addParent(parent)
@@ -81,6 +82,10 @@ function Entity:update(dt, keys)
 end
 
 function Entity:resolveCollision()
+	while not self.commandQ:isEmpty() do
+		local c = self.commandQ:pop()
+		c.Undo()
+	end
 end
 
 --[[
@@ -103,4 +108,41 @@ function Entity:send(message)
 	for _, comp in pairs(components or {}) do
 		comp:receive(message, self)
 	end
+end
+
+function Entity:get(component)
+	return self.components[component]
+end
+
+--[[
+	COMMANDS
+]]
+
+function Entity:makeMoveCommand(direction)
+
+	if not self:get("position") then return end
+
+	local getPosition = self:get("position"):getClosure({"x", "y"})
+	local setPosition = self:get("position"):setClosure({"x", "y"})
+
+	local xoff, yoff = 0, 0
+	if direction == "up" then yoff = -2 end
+	if direction == "down" then yoff = 2 end
+	if direction == "left" then xoff = -2 end
+	if direction == "right" then xoff = 2 end
+	
+	local x, y = getPosition()
+	local command = {
+		Do = function()
+			setPosition{x+xoff, y+yoff}
+			self:send{"move", direction}
+		end,
+		Undo = function()
+			setPosition{x, y}
+			self:send{"move", "stand"}
+		end
+	}
+
+	self.commandQ:push(command)
+	return command
 end

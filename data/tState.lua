@@ -6,31 +6,21 @@ function state:enter()
 	world = World:new()
 	--camera = Camera:new()
 
-	entity1 = Entity:new(detective)
-	entity1.components["layer"][1] = 2
-	entity2 = Entity:new(detective)
-	entity2:removeComponents({"input"})
-	entity2.components["position"]["x"] = 30
-	entity2.components["position"]["y"] = 30
+	local entity1 = Entity:new(player)
 
-	entity3 = Entity:new(detective)
-	entity3:removeComponents({"input"})
-	entity3.components["position"]["x"] = 60
-	entity3.components["position"]["y"] = 60
+	local entity2 = Entity:new(detective)
+
+	local entity3 = Entity:new(sword)
 
 	local cam = Entity:new(camera)
 
-	cam.components["position"]:lockToEntity(entity2, "center")
+	cam.components["position"]:lockToEntity(entity1, "center")
+	entity3.components["position"]:lockToEntity(entity1)
 
 	world:registerCamera(cam)
 	world:registerEntity(entity1)
 	world:registerEntity(entity2)
 	world:registerEntity(entity3)
-
-	cam.components["position"]:update()
-	local w, h = love.graphics.getDimensions()
-	local x = cam.components["position"]["x"]
-	local y = cam.components["position"]["y"]
 end
 
 function state:update(dt, keys)

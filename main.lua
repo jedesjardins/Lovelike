@@ -8,7 +8,7 @@ function love.load()
 	state = require("StateManager")
 	require("Util")
 	require("World")
-
+	
 	state:init()
 end
 

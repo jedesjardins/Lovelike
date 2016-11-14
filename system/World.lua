@@ -54,11 +54,14 @@ function World:collisionDetection()
 
 		for _, f in pairs(others) do
 			if self:detectCollision(e, f) then
-				print("collision!")
-				e:resolveCollision()
-				f:resolveCollision()
+				e:get("collision"):resolve(e, f)
+				f:get("collision"):resolve(f, e)
 			end
 		end
+	end
+
+	for _, e in pairs(self.entities) do
+		e.commandQ:flush()
 	end
 end
 
@@ -103,7 +106,7 @@ function World:draw()
 	layersToId = {}
 
 	for id, e in pairs(self.entities) do
-		local layerComp = e.components["layer"]
+		local layerComp = e.components["layer"] or {1}
 		if layerComp then
 			local layer = layerComp[1] or 1
 			layersToId[layer] = layersToId[layer] or {}
@@ -129,7 +132,6 @@ end
 	adds an entity to the engine
 ]]
 function World:registerEntity(entity)
-
 	return self.entities:add(entity)
 end
 

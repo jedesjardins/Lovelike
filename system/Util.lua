@@ -32,6 +32,77 @@ function List:remove(i)
 	self[i] = nil
 end
 
+local Queue = {}
+
+function Queue:new(o)
+	o = o or {}
+	setmetatable(o, self)
+	self.__index = self
+	o.front = 0
+	o.back = 0
+	return o
+end
+
+function Queue:push(el)
+	self[self.back] = el
+	self.back = self.back + 1
+end
+
+function Queue:pop()
+	if self:isEmpty() then error("Queue is empty") end
+
+	local value = self[self.front]
+	self[self.front] = nil        -- to allow garbage collection
+	self.front = self.front + 1
+	return value
+end
+
+function Queue:isEmpty()
+	return self.front == self.back
+end
+
+function Queue:flush()
+	while not self:isEmpty() do
+		print(self.front, self.back)
+		self:pop()
+	end
+end
+
+local Stack = {}
+
+function Stack:new(o)
+	o = o or {}
+	setmetatable(o, self)
+	self.__index = self
+	o.top = 0
+	return o
+end
+
+function Stack:push(el)
+
+	self[self.top] = el
+	self.top = self.top + 1
+end
+
+function Stack:pop()
+	if self:isEmpty() then error("Queue is empty") end
+
+	self.top = self.top - 1
+	local value = self[self.top]
+	self[self.top] = nil
+	return value
+end
+
+function Stack:isEmpty()
+	return self.top == 0
+end
+
+function Stack:flush()
+	while not self:isEmpty() do
+		self:pop()
+	end
+end
+
 --[[
 	Basic Map, can add key value pair, or remove by key.
 ]]
@@ -56,7 +127,7 @@ function Map:remove(k)
 end
 
 Quadtree = {
-	MAXDEPTH = 1,
+	MAXDEPTH = 5,
 	x = 0,
 	y = 0,
 	w = 0,
@@ -157,6 +228,8 @@ end
 
 
 Util.List = List
+Util.Queue = Queue
+Util.Stack = Stack
 Util.Map = Map
 Util.Quadtree = Quadtree
 

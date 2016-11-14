@@ -40,7 +40,7 @@ function Component:getClosure(attributes)
 			table.insert(list, self[v])
 		end
 		return unpack(list)
-	end 
+	end
 end
 
 --[[
@@ -53,7 +53,7 @@ end
 function Component:setClosure(attributes)
 	return function(list)
 		for k, v in ipairs(list) do
-			if attributes[k] and type(v) == type(attributes[k]) then
+			if attributes[k] and type(v) == type(self[attributes[k]]) then
 				self[attributes[k]] = v
 			end
 		end
