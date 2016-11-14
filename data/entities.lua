@@ -13,7 +13,7 @@
 
 detective = {
 	state = {
-		playerStateMachine,
+		basicStateMachine,
 		{
 			facing = "down",
 			action = "stand"
@@ -21,19 +21,29 @@ detective = {
 	},
 
 	input = {
-		playerInput,
+		basicInput,
 		{}
 	},
 
-	position = {
-		position,
+	collision = {
+		basicCollision,
 		{
-			x = 10, y = 10
+			x = 4,
+			y = 10,
+			w = 16,
+			h = 18
+		}	
+	},
+
+	position = {
+		basicPosition,
+		{
+			x = 0, y = 0
 		}
 	},
 
 	draw = {
-		drawSprite,
+		basicSprite,
 		{
 			dependencies = {position},
 			file = "Detective.png",
@@ -55,9 +65,9 @@ detective = {
 	},
 
 	layer = {
-		layerSprite,
+		basicLayer,
 		{
-			1
+			2
 		}
 	}
 }

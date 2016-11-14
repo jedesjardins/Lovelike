@@ -28,7 +28,6 @@ function Entity:addComponents(comps)
 	for name, comp in pairs(comps or {}) do
 
 		local class = comp[1]
-		printChildren(name, class)
 		local component = class:new(comp[2])
 
 		components[name] = component
@@ -79,6 +78,9 @@ function Entity:update(dt, keys)
 			component:update(dt, keys, self)
 		end
 	end
+end
+
+function Entity:resolveCollision()
 end
 
 --[[

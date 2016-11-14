@@ -45,22 +45,31 @@ end
 	General player components
 ]]
 
-playerInput = Component:new()
+basicInput = Component:new()
 
-function playerInput:update(dt, keys, e)
+function basicInput:update(dt, keys, e)
 	if keys["up"]	then e:send{"input", "up"}		end
 	if keys["down"]	then e:send{"input", "down"}	end
 	if keys["left"]	then e:send{"input", "left"}	end
 	if keys["right"]then e:send{"input", "right"}	end
+	if keys["space"]then 
+		local e2 = Entity:new(detective)
+
+		e2.components["position"]["y"] = e.components["position"]["y"] + 100
+		e2.components["position"]["x"] = e.components["position"]["x"] + 100
+		e2:removeComponents({"input"})
+		world:registerEntity(e2)
+		-- create new entity
+	end
 
 	if not(keys["up"] or keys["down"] or keys["left"] or keys["right"]) then
 		e:send{"input", "stand"}
 	end
 end
 
-position = Component:new()
+basicPosition = Component:new()
 
-function position:receive(message)
+function basicPosition:receive(message)
 	if message[1] == "state" then
 		if message[3] == "walk" then
 			if message[2] == "up" then
@@ -76,31 +85,31 @@ function position:receive(message)
 	end
 end
 
-drawSprite = Component:new()
+basicSprite = Component:new()
 
-function drawSprite:init(listOptions)
+function basicSprite:init(listOptions)
 	Component.init(self, listOptions)
 
 	self.image = love.graphics.newImage("resources/" .. listOptions["file"])
 end
 
-function drawSprite:registerDepends(entity)
+function basicSprite:registerDepends(entity)
 
 	self.getPosition = entity.components["position"]:getClosure({"x", "y"})
 end
 
-function drawSprite:update()
+function basicSprite:update()
 	
 	self.frame = self.frame + 1
 end
 
-function drawSprite:draw()
+function basicSprite:draw()
 	self.quad = self.quad or love.graphics.newQuad(0, 0, 24, 32, self.image:getDimensions())
 	local x, y = self.getPosition()
 	love.graphics.draw(self.image, self.quad, x, y)
 end
 
-function drawSprite:receive(message)
+function basicSprite:receive(message)
 	if message[1] == "state" then
 		local facing = message[2]
 		local action = message[3]
@@ -124,11 +133,11 @@ function drawSprite:receive(message)
 	end
 end
 
-layerSprite = Component:new()
+basicLayer = Component:new()
 
-playerStateMachine = Component:new()
+basicStateMachine = Component:new()
 
-function playerStateMachine:receive(message, e)
+function basicStateMachine:receive(message, e)
 	if message[1] == "input" then
 		-- stop moving
 		if message[2] == "stand" then
@@ -146,4 +155,14 @@ function playerStateMachine:receive(message, e)
 			e:send{"state", self.facing, self.action}
 		end
 	end
+end
+
+basicCollision = Component:new()
+
+function basicCollision:registerDepends(entity)
+	self.getPosition = entity.components["position"]:getClosure({"x", "y"})
+end
+
+function basicCollision:getBox()
+	return self.x, self.y, self.w, self.h
 end

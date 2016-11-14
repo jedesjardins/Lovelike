@@ -55,8 +55,117 @@ function Map:remove(k)
 	self[k] = nil
 end
 
+Quadtree = {
+	MAXDEPTH = 1,
+	x = 0,
+	y = 0,
+	w = 0,
+	h = 0
+}
+
+function Quadtree:new(x, y, w, h, d)
+	o = {}
+	setmetatable(o, self)
+	self.__index = self
+
+	o.nodes = {}
+	o.entities = List:new()
+	o.x = x
+	o.y = y
+	o.w = w
+	o.h = h
+	o.d = d or 0
+	return o
+end
+
+function Quadtree:clear()
+	for id, e in pairs(self.entities) do
+		self.entities[id] = nil
+	end
+
+	for i, qt in pairs(self.nodes) do
+		qt:clear()
+		self.nodes[i] = nil
+	end
+end
+
+function Quadtree:split()
+	local x, y, w, h, d = self.x, self.y, self.w, self.h, self.d
+
+	self.nodes[1] = Quadtree:new(x, y, w/2, h/2, d+1)
+	self.nodes[2] = Quadtree:new(x+w/2, y, w/2, h/2, d+1)
+	self.nodes[3] = Quadtree:new(x, y+h/2, w/2, h/2, d+1)
+	self.nodes[4] = Quadtree:new(x+w/2, y+h/2, w/2, h/2, d+1)
+end
+
+function Quadtree:getIndex(x, y, w, h)
+	local index = -1
+
+	local vmidpoint = self.x + self.w/2
+	local hmidpoint = self.y + self.h/2
+
+	local topQuad = ((y < hmidpoint) and (y + h < hmidpoint))
+	local botQuad = y >= hmidpoint
+
+	if ((x < vmidpoint) and (x + w < vmidpoint)) then
+		if topQuad then
+			index = 2
+		elseif botQuad then
+			index = 3
+		end
+	elseif (x >= vmidpoint) then
+		if topQuad then
+			index = 1
+		elseif botQuad then
+			index = 4
+		end
+	end
+
+	return index
+end
+
+function Quadtree:insert(e, x, y, w, h)
+	local index = self:getIndex(x, y, w, h)
+	if index == -1 then
+		self.entities:add(e)
+	else 
+		if self.d == Quadtree.MAXDEPTH then
+			self.entities:add(e)
+		else
+			if not self.nodes[index] then self:split() end
+			self.nodes[index]:insert(e, x, y, w, h)
+		end
+	end
+end
+
+function Quadtree:retreive(x, y, w, h)
+	local index = self:getIndex(x, y, w, h)
+	local objs = {}
+
+	if index ~= -1 and self.nodes[index] then
+		objs = self.nodes[index]:retreive(x, y, w, h)
+	end
+
+	for id, entity in pairs(self.entities) do
+		table.insert(objs, entity)
+	end
+
+	return objs
+end
+
+
+
+
 Util.List = List
 Util.Map = Map
+Util.Quadtree = Quadtree
+
+
+
+
+
+
+
 
 -- General Functions
 

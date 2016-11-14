@@ -16,8 +16,79 @@ function World:update(dt, keys)
 	for _, e in pairs(self.entities) do
 		e:update(dt, keys)
 	end
+
+	self:collisionDetection()
 end
 
+local function mix(getPos, getBox)
+		local x, y = getPos()
+		local xoff, yoff, w, h = getBox()
+
+		return x+xoff, y+yoff, w, h
+end
+
+local function getHitBox(e)
+	local getBox = e.components["collision"]:getClosure({"x", "y", "w", "h"})
+	local getPos = e.components["position"]:getClosure({"x", "y"})
+	return mix(getPos, getBox)
+end
+
+function World:collisionDetection()
+
+	local x = self.cam.components["position"]["x"]
+	local y = self.cam.components["position"]["y"]
+	local w, h = love.graphics.getDimensions()
+
+	local tree = Quadtree:new(x, y, w, h, 0)
+	local list = {}
+
+	for _, e in pairs(self.entities) do
+		if e.components["position"] and e.components["collision"] then
+			tree:insert(e, getHitBox(e))
+			table.insert(list, e)
+		end
+	end
+
+	for _, e in pairs(list) do
+		local others = tree:retreive(getHitBox(e))
+
+		for _, f in pairs(others) do
+			if self:detectCollision(e, f) then
+				print("collision!")
+				e:resolveCollision()
+				f:resolveCollision()
+			end
+		end
+	end
+end
+
+function World:detectCollision(e1, e2)
+	if e1 == e2 then return end
+	local posx1, posy1 = e1.components["collision"].getPosition()
+	local x1, y1, w1, h1 = e1.components["collision"]:getBox()
+	x1 = posx1 + x1
+	y1 = posy1 + y1
+
+	if not(e2.components["position"] and e2.components["collision"]) then return end
+
+	local posx2, posy2 = e2.components["collision"].getPosition()
+	local x2, y2, w2, h2 = e2.components["collision"]:getBox()
+	x2 = posx2 + x2
+	y2 = posy2 + y2
+
+	return 	self:isPointInside(x1, y1, w1, h1, x2, y2) or
+			self:isPointInside(x1, y1, w1, h1, x2 + w2, y2) or
+			self:isPointInside(x1, y1, w1, h1, x2, y2 + h2)	or
+			self:isPointInside(x1, y1, w1, h1, x2 + w2, y2 + h2)
+
+	
+end
+
+function World:isPointInside(x, y, w, h, x2, y2) 
+	inX = (x <= x2 and x2 <= x + w)
+	inY = (y <= y2 and y2 <= y + h)
+	return (inX and inY)
+end
 --[[
 	draws all entities in engine
 ]]
@@ -78,7 +149,6 @@ function World:removeEntity(id)
 	
 	self.entities:remove(id)
 end
-
 
 require("Entity")
 require("Component")
