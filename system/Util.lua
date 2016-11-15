@@ -224,21 +224,11 @@ function Quadtree:retreive(x, y, w, h)
 	return objs
 end
 
-
-
-
 Util.List = List
 Util.Queue = Queue
 Util.Stack = Stack
 Util.Map = Map
 Util.Quadtree = Quadtree
-
-
-
-
-
-
-
 
 -- General Functions
 

@@ -24,6 +24,11 @@ sword = {
 			file = "Sword.png",
 			frameW = 24, frameH = 32
 		}
+	},
+
+	layer = {
+		basicLayer,
+		{2}
 	}
 }
 
@@ -89,10 +94,12 @@ detective = {
 		}
 	},
 
+	--[[
 	input = {
 		artificialInput,
 		{}
 	},
+	]]
 
 	collision = {
 		basicCollision,

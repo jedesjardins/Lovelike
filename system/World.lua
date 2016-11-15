@@ -65,6 +65,28 @@ function World:collisionDetection()
 	end
 end
 
+function World:onScreen(e)
+	if not(e:get("position") and e:get("draw")) then return end
+
+	local x = self.cam:get("position")["x"]
+	local y = self.cam:get("position")["y"]
+	local w, h = love.graphics.getDimensions()
+
+	--local posx2, posy2 = e.components["collision"].getPosition()
+	--local x2, y2, w2, h2 = e.components["collision"]:getBox()
+
+	local getPosition = e:get("position"):getClosure{"x", "y"}
+	local getBoxSize = e:get("draw"):getClosure{"frameW", "frameH"}
+
+	local x2, y2 = getPosition()
+	local w2, h2 = getBoxSize()
+
+	return 	self:isPointInside(x, y, w, h, x2, y2) or
+			self:isPointInside(x, y, w, h, x2 + w2, y2) or
+			self:isPointInside(x, y, w, h, x2, y2 + h2)	or
+			self:isPointInside(x, y, w, h, x2 + w2, y2 + h2)
+end
+
 function World:detectCollision(e1, e2)
 	if e1 == e2 then return end
 	local posx1, posy1 = e1.components["collision"].getPosition()
@@ -96,6 +118,7 @@ end
 	draws all entities in engine
 ]]
 function World:draw()
+	-- push new frame
 	if self.cam then
 		love.graphics.push()
 		local x = self.cam.components["position"]["x"]
@@ -103,26 +126,57 @@ function World:draw()
 		love.graphics.translate(-x, -y)
 	end
 
-	layersToId = {}
 
+	layersToEntities = {}
+	local entities = {}
+
+	-- log onscreen entities
 	for id, e in pairs(self.entities) do
-		local layerComp = e.components["layer"] or {1}
-		if layerComp then
-			local layer = layerComp[1] or 1
-			layersToId[layer] = layersToId[layer] or {}
-			table.insert(layersToId[layer], id)
+		if self:onScreen(e) then
+			entities[id] = e
+			--table.insert(entities, e)
 		end
 	end
 
-	for layer, ids in pairs(layersToId) do
-		for _, id in pairs(ids) do
-			local e = self.entities[id]
+	-- sort onscreen entities into layers
+	for id, e in pairs(entities) do
+		local layer = e:get("layer")[1] or 1
+		layersToEntities[layer] = layersToEntities[layer] or {}
+		table.insert(layersToEntities[layer], self.entities[id])
+	end
+
+	-- function to sort for Z indexing
+	-- TODO: refactor to use z attribute in position instead of calculated Z index and layers
+	local sortZIndex = function(f, s)
+
+		if not(f:get("position") and f:get("draw")) then return true end
+		if not(s:get("position") and s:get("draw")) then return true end
+
+		local y1 = f:get("position")["y"]
+		local h1 = f:get("draw")["frameH"]
+		local z1 = y1 + h1
+
+		local y2 = s:get("position")["y"]
+		local h2 = s:get("draw")["frameH"]
+		local z2 = y2 + h2
+
+		return z1 < z2
+	end
+
+	-- sort each layer by Z Index
+	for layer, idList in pairs(layersToEntities) do
+		table.sort(idList, sortZIndex)
+	end
+
+	-- draw all the layers
+	for layer, ids in pairs(layersToEntities) do
+		for _, e in pairs(ids) do
+			--local e = self.entities[id]
 			e:draw()
 		end
 	end
 
-	-- e:draw()
-
+	-- pop the frame
 	if self.cam then
 		love.graphics.pop()
 	end
