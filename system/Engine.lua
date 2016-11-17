@@ -21,9 +21,8 @@ function Engine:registerViewPort(viewport)
 end
 
 function Engine:update(dt, keys)
-	if keys:held("return") then self.viewport:zoomIn(0, 0) end
-	if keys:held("rshift") then self.viewport:zoomOut(0, 0) end
-	if keys:pressed("lshift") then self.viewport:centerOnBox(20, 20, 24, 32) end
+	
+	self.viewport:update(dt, keys)
 end
 
 function Engine:draw()

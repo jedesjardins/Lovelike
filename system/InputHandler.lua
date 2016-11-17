@@ -5,7 +5,7 @@ function Input:new()
 	setmetatable(o, self)
 	self.__index = self
 	self.keys = {
-		tracked = {"return", "rshift", "lshift"},
+		tracked = {"return", "rshift", "lshift", "up", "down", "left", "right"},
 		pressed = function(keys, key)
 			return keys[key] == "pressed"
 		end,

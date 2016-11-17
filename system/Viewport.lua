@@ -36,20 +36,65 @@ function Viewport:new(options)
 	return o
 end
 
+--[[
+	DRAW ACTIONS
+]]
+
+function Viewport:set()
+	--screenW, screenH = love.graphics.getDimensions()
+	--love.graphics.scale(screenW/self.w, screenH/self.h)
+end
+
+function Viewport:unset()
+	--
+	--
+end
+
+function Viewport:drawRect(x, y, w, h)
+	local ax, ay, aw, ah = self:translateRect(x, y, w, h)
+	love.graphics.rectangle("fill", ax, ay, aw, ah)
+end
+
+function Viewport:draw(image, posx, posy, x, y, w, h, r)
+
+
+	local quad, scale = self:translateQuad(x, y, w, h, image:getDimensions())
+	local px, py = self:translateRect(posx, posy, w, h)
+	love.graphics.draw(image, quad, px, py, r or 0, scale, scale)
+end
+
+--[[
+	STATE ACTIONS
+]]
+
+function Viewport:update(dt, keys)
+	if keys:held("return") then self:zoomIn(0, 0) end
+	if keys:held("rshift") then self:zoomOut(0, 0) end
+	if keys:pressed("lshift") then self:centerOnBox(20, 20, 24, 32) end
+	if keys:held("up") then self:setPosition(self.x, self.y - 2) end
+	if keys:held("down") then self:setPosition(self.x, self.y + 2) end
+	if keys:held("right") then self:setPosition(self.x - 2, self.y) end
+	if keys:held("left") then self:setPosition(self.x + 2, self.y) end
+end
+
+function Viewport:setPosition(x, y)
+	self.x = x
+	self.y = y
+end
+
 function Viewport:setSize(w, h)
 	self.w = w
 	self.h = h
 end
 
 function Viewport:centerOnPoint(x, y)
-	self.x = x - self.w/2
-	self.y = y - self.h/2
+	
+	self:setPosition(x - self.w/2, y - self.h/2)
 end
 
 function Viewport:centerOnBox(x, y, w, h)
-	self.x = x - self.w/2 + w/2
-	self.y = y - self.h/2 + h/2
 
+	self:setPosition(x - self.w/2+ w/2, y - self.h/2+ h/2)
 end
 
 function Viewport:zoomIn(x, y)
@@ -97,9 +142,17 @@ function Viewport:zoomOut(x, y)
 	end
 end
 
+--[[
+	HELPERS
+]]
+
 function Viewport:translateRect(x, y, w, h)
 
 	local scale = self.screenH / self.h
+
+	if not (w and h) then
+		w, h = 0, 0
+	end
 
 	local aw = scale*w
 	local ah = scale*h
@@ -128,28 +181,5 @@ function Viewport:translateQuad(x, y, w, h, iw, ih)
 		self.quads[key][x..y..w..h] = quad
 		return quad, scale
 	end
-end
-
-function Viewport:drawRect(x, y, w, h)
-	--print(self:translateCoords(x, y, w, h))
-	local ax, ay, aw, ah = self:translateRect(x, y, w, h)
-	love.graphics.rectangle("fill", ax, ay, aw, ah)
-end
-
-function Viewport:draw(image, posx, posy, x, y, w, h, r)
-
-
-	local quad, scale = self:translateQuad(x, y, w, h, image:getDimensions())
-	local px, py = self:translateRect(posx, posy, w, h)
-	love.graphics.draw(image, quad, px, py, r or 0, scale, scale)
-end
-
-function Viewport:set()
-	--screenW, screenH = love.graphics.getDimensions()
-	--love.graphics.scale(screenW/self.w, screenH/self.h)
-end
-
-function Viewport:unset()
-
 end
 
