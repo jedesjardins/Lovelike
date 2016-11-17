@@ -14,7 +14,7 @@ function state:enter()
 
 	local cam = Entity:new(camera)
 
-	cam.components["position"]:lockToEntity(entity1, "center")
+	--cam.components["position"]:lockToEntity(entity1, "center")
 	entity3.components["position"]:lockToEntity(entity1)
 
 	world:registerCamera(cam)

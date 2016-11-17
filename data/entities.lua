@@ -22,7 +22,7 @@ sword = {
 		{
 			dependencies = {position},
 			file = "Sword.png",
-			frameW = 24, frameH = 32
+			frameW = 3, frameH = 14
 		}
 	},
 
@@ -94,12 +94,10 @@ detective = {
 		}
 	},
 
-	--[[
 	input = {
 		artificialInput,
 		{}
 	},
-	]]
 
 	collision = {
 		basicCollision,

@@ -7,14 +7,14 @@ function love.load()
 	-- require game engine things
 	state = require("StateManager")
 	require("Util")
-	require("World")
+	--require("World")
 	
 	state:init()
 end
 
 function love.update(dt)
-	keys = state:updateKeys()
-	state:update(dt, keys)
+	--keys = state:updateKeys()
+	state:update(dt)
 end
 
 function love.draw()

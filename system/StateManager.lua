@@ -5,12 +5,16 @@ function StateManager:init()
 	-- self.states = require("states")
 	-- self.state = self.states["introState"]
 	require("State")
-	self.state = require("tState")
+	require("Engine")
+	require("InputHandler")
+	require("Viewport")
+
+	self.state = require("state")
 	self.state:enter()
 end
 
-function StateManager:update(dt, keys)
-	local nextState = self.state:update(dt, keys)
+function StateManager:update(dt)
+	local nextState = self.state:update(dt)
 	if nextState then
 		self:switchToState(nextState)
 	end
@@ -26,8 +30,10 @@ function StateManager:switchToState(nextState)
 	self.state:enter()
 end
 
+--[[
 function StateManager:updateKeys()
 	return self.state:updateKeys()
 end
+]]
 
 return StateManager

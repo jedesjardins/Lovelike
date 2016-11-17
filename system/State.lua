@@ -59,27 +59,4 @@ function State:new(o)
 	return o
 end
 
---[[
-	should add a service from a table on file
-	allows for dynamic building of states from different
-	preset services
-]]
-function State:addSystemFromFile(name)
-
-end
-
---[[
-	should add an entity of the type inputted
-	allows for adding premade entities
-	
-	input:	name	name of entity type to add
-			comps 	list of components to add?
-	output:	id:		the id of the new entity
-]]
-function State:addEntityFromFile(name, comps)
-
-	return -1 -- error
-end
-
-
 return State
