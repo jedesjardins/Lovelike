@@ -5,7 +5,9 @@ function state:enter()
 	engine = Engine:new()
 
 	local viewport = Viewport:new()
+	local map = Map:new()
 
+	engine:registerMap(map)
 	engine:registerViewPort(viewport)
 end
 

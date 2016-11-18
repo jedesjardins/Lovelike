@@ -9,7 +9,6 @@
 
 	functions:
 		override basic love.graphics functions
-
 ]]
 
 Viewport = {}
@@ -50,17 +49,38 @@ function Viewport:unset()
 	--
 end
 
+function Viewport:setCanvas(canvas)
+	-- mark that we are drawing to canvas
+	if canvas then
+		self.canvas = canvas
+	else
+		self.canvas = nil
+	end
+	love.graphics.setCanvas(canvas)
+end
+
+function Viewport:isTargetCanvas()
+
+	return self.canvas
+end
+
 function Viewport:drawRect(x, y, w, h)
 	local ax, ay, aw, ah = self:translateRect(x, y, w, h)
 	love.graphics.rectangle("fill", ax, ay, aw, ah)
 end
 
-function Viewport:draw(image, posx, posy, x, y, w, h, r)
-
-
+function Viewport:drawQ(image, posx, posy, x, y, w, h, r)
 	local quad, scale = self:translateQuad(x, y, w, h, image:getDimensions())
 	local px, py = self:translateRect(posx, posy, w, h)
+	if self.canvas then scale = 1 end
 	love.graphics.draw(image, quad, px, py, r or 0, scale, scale)
+end
+
+function Viewport:draw(image, posx, posy)
+	local imgW, imgH = image:getDimensions()
+	local px, py = self:translateRect(posx, posy, imgW, imgH)
+	local scale = self:getScale()
+	love.graphics.draw(image, px, py, r or 0, scale, scale)
 end
 
 --[[
@@ -68,13 +88,13 @@ end
 ]]
 
 function Viewport:update(dt, keys)
-	if keys:held("return") then self:zoomIn(0, 0) end
-	if keys:held("rshift") then self:zoomOut(0, 0) end
+	if keys:held("return") then self:zoomIn() end
+	if keys:held("rshift") then self:zoomOut() end
 	if keys:pressed("lshift") then self:centerOnBox(20, 20, 24, 32) end
-	if keys:held("up") then self:setPosition(self.x, self.y - 2) end
-	if keys:held("down") then self:setPosition(self.x, self.y + 2) end
-	if keys:held("right") then self:setPosition(self.x - 2, self.y) end
-	if keys:held("left") then self:setPosition(self.x + 2, self.y) end
+	if keys:held("up") then self:setPosition(self.x, self.y + 2) end
+	if keys:held("down") then self:setPosition(self.x, self.y - 2) end
+	if keys:held("right") then self:setPosition(self.x + 2, self.y) end
+	if keys:held("left") then self:setPosition(self.x - 2, self.y) end
 end
 
 function Viewport:setPosition(x, y)
@@ -88,7 +108,7 @@ function Viewport:setSize(w, h)
 end
 
 function Viewport:centerOnPoint(x, y)
-	
+
 	self:setPosition(x - self.w/2, y - self.h/2)
 end
 
@@ -147,24 +167,30 @@ end
 ]]
 
 function Viewport:translateRect(x, y, w, h)
-
-	local scale = self.screenH / self.h
-
 	if not (w and h) then
 		w, h = 0, 0
 	end
 
-	local aw = scale*w
-	local ah = scale*h
+	if self.canvas then
+		local canvasHeight = self.canvas:getHeight()
+		local ay = canvasHeight - y - h
 
-	local ax = scale * (x - self.x)
-	local ay = self.screenH - (scale * (y - self.y)) - ah
+		return x, ay, w, h
+	else
+		local scale = self:getScale()
 
-	return ax, ay, aw, ah
+		local aw = scale*w
+		local ah = scale*h
+
+		local ax = scale * (x - self.x)
+		local ay = self.screenH - (scale * (y - self.y)) - ah
+
+		return ax, ay, aw, ah
+	end
 end
 
 function Viewport:translateQuad(x, y, w, h, iw, ih)
-	local scale = self.screenH / self.h
+	local scale = self:getScale()
 
 	local ax, aw, ah = x, w, h
 	local ay = ih - y - h
@@ -183,3 +209,7 @@ function Viewport:translateQuad(x, y, w, h, iw, ih)
 	end
 end
 
+function Viewport:getScale()
+
+	return self.screenH / self.h
+end

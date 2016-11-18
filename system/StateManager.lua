@@ -8,6 +8,7 @@ function StateManager:init()
 	require("Engine")
 	require("InputHandler")
 	require("Viewport")
+	require("Map")
 
 	self.state = require("state")
 	self.state:enter()
