@@ -2,22 +2,23 @@
 local StateManager = {}
 
 function StateManager:init()
-	-- self.states = require("states")
-	-- self.state = self.states["introState"]
 	require("State")
 	require("Engine")
 	require("InputHandler")
+	require("Entity")
 	require("Viewport")
 	require("Map")
+	require("Box")
+	require("Point")
 
 	self.state = require("state")
 	self.state:enter()
 end
 
 function StateManager:update(dt)
-	local nextState = self.state:update(dt)
+	local nextState, saveFile = self.state:update(dt)
 	if nextState then
-		self:switchToState(nextState)
+		self:switchToState(nextState, saveFile)
 	end
 end
 
@@ -30,11 +31,5 @@ function StateManager:switchToState(nextState)
 	self.state = self.states[nextState]
 	self.state:enter()
 end
-
---[[
-function StateManager:updateKeys()
-	return self.state:updateKeys()
-end
-]]
 
 return StateManager

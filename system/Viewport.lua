@@ -1,16 +1,3 @@
---[[
-	Do all the drawing here 
-	
-	attributes:
-		position: position of the world
-		size: dimensions of world seen, used also for scale
-		layers: canvases to be drawn to
-		quads: memoize quads
-
-	functions:
-		override basic love.graphics functions
-]]
-
 Viewport = {}
 
 -- TODO: guarantee option inputs are numbers
@@ -69,18 +56,18 @@ function Viewport:drawRect(x, y, w, h)
 	love.graphics.rectangle("fill", ax, ay, aw, ah)
 end
 
-function Viewport:drawQ(image, posx, posy, x, y, w, h, r)
-	local quad, scale = self:translateQuad(x, y, w, h, image:getDimensions())
-	local px, py = self:translateRect(posx, posy, w, h)
-	if self.canvas then scale = 1 end
-	love.graphics.draw(image, quad, px, py, r or 0, scale, scale)
-end
-
-function Viewport:draw(image, posx, posy)
-	local imgW, imgH = image:getDimensions()
-	local px, py = self:translateRect(posx, posy, imgW, imgH)
-	local scale = self:getScale()
-	love.graphics.draw(image, px, py, r or 0, scale, scale)
+function Viewport:draw(image, point, box, r)
+	if not(box) then
+		local imgW, imgH = image:getDimensions()
+		local px, py = self:translateRect(point.x, point.y, imgW, imgH)
+		local scale = self:getScale()
+		love.graphics.draw(image, px, py, r or 0, scale, scale)
+	else
+		local quad, scale = self:translateQuad(box.x, box.y, box.w, box.h, image:getDimensions())
+		local px, py = self:translateRect(point.x, point.y, box.w, box.h)
+		if self.canvas then scale = 1 end
+		love.graphics.draw(image, quad, px, py, r or 0, scale, scale)
+	end
 end
 
 --[[
@@ -90,7 +77,7 @@ end
 function Viewport:update(dt, keys)
 	if keys:held("return") then self:zoomIn() end
 	if keys:held("rshift") then self:zoomOut() end
-	if keys:pressed("lshift") then self:centerOnBox(20, 20, 24, 32) end
+	if keys:pressed("lshift") then self:centerOnPoint(0, 0) end
 	if keys:held("up") then self:setPosition(self.x, self.y + 2) end
 	if keys:held("down") then self:setPosition(self.x, self.y - 2) end
 	if keys:held("right") then self:setPosition(self.x + 2, self.y) end
@@ -189,6 +176,7 @@ function Viewport:translateRect(x, y, w, h)
 	end
 end
 
+-- TODO: prioritize quads so that only a given number are memoized
 function Viewport:translateQuad(x, y, w, h, iw, ih)
 	local scale = self:getScale()
 

@@ -27,7 +27,7 @@ end
 
 function Map:draw(viewport)
 	if not self.canvas then
-		self.canvas = love.graphics.newCanvas(500, 400)
+		self.canvas = love.graphics.newCanvas(400, 300)
 		self.canvas:setFilter("nearest", "nearest")
 		viewport:setCanvas(self.canvas)
 		love.graphics.clear(255, 255, 255)
@@ -44,7 +44,7 @@ function Map:draw(viewport)
 end
 
 function Map:getTiles()
+	
 	local tiles = {}
-
 end
 
