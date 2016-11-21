@@ -1,16 +1,17 @@
-Entity = {}
+Entity = Object:new()
 
 require("Component")
 
-function Entity:new(comps, parent, children)
-	local o = {}
-	setmetatable(o, self)
-	self.__index = self
+function Entity:init(options)
+	options = options or {}
+	local comps = options[1] or {}
+	local parent = options[2]
+	local children = options[3]
 
-	o.components = {}
-	o.parent = parent
-	o.children = {}
-	o.commands = Util.Stack:new()
+	self.components = {}
+	self:addComponents(comps)
+	self:addParent(parent)
+	self:addChildren(children)
 end
 
 --[[
@@ -20,12 +21,8 @@ function Entity:addComponents(comps)
 	local components = self.components
 
 	for name, comp in pairs(comps or {}) do
-		local class = comp[1]
-		local component = class:new(comp[2])
-
-		components[name] = component
+		components[name] = component:new()
 	end
-
 end
 
 function Entity:removeComponents(comps)

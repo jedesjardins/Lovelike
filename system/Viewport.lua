@@ -6,10 +6,10 @@ function Viewport:new(options)
 	setmetatable(o, self)
 	self.__index = self
 	options = options or {}
-	self.x = options[1] or 0
-	self.y = options[2] or 0
-	self.w = options[3] or 400
-	self.h = options[4] or 300
+	self.box = Box:new(options[1] or 0,
+						options[2] or 0,
+						options[3] or 400,
+						options[4] or 300)
 
 	self.screenW, self.screenH = love.graphics.getDimensions()
 
@@ -57,16 +57,16 @@ function Viewport:drawRect(x, y, w, h)
 end
 
 function Viewport:draw(image, point, box, r)
-	if not(box) then
-		local imgW, imgH = image:getDimensions()
-		local px, py = self:translateRect(point.x, point.y, imgW, imgH)
-		local scale = self:getScale()
-		love.graphics.draw(image, px, py, r or 0, scale, scale)
-	else
+	if box then
 		local quad, scale = self:translateQuad(box.x, box.y, box.w, box.h, image:getDimensions())
 		local px, py = self:translateRect(point.x, point.y, box.w, box.h)
 		if self.canvas then scale = 1 end
 		love.graphics.draw(image, quad, px, py, r or 0, scale, scale)
+	else
+		local imgW, imgH = image:getDimensions()
+		local px, py = self:translateRect(point.x, point.y, imgW, imgH)
+		local scale = self:getScale()
+		love.graphics.draw(image, px, py, r or 0, scale, scale)
 	end
 end
 
@@ -78,46 +78,46 @@ function Viewport:update(dt, keys)
 	if keys:held("return") then self:zoomIn() end
 	if keys:held("rshift") then self:zoomOut() end
 	if keys:pressed("lshift") then self:centerOnPoint(0, 0) end
-	if keys:held("up") then self:setPosition(self.x, self.y + 2) end
-	if keys:held("down") then self:setPosition(self.x, self.y - 2) end
-	if keys:held("right") then self:setPosition(self.x + 2, self.y) end
-	if keys:held("left") then self:setPosition(self.x - 2, self.y) end
+	if keys:held("up") then self:setPosition(self.box.x, self.box.y + 2) end
+	if keys:held("down") then self:setPosition(self.box.x, self.box.y - 2) end
+	if keys:held("right") then self:setPosition(self.box.x + 2, self.box.y) end
+	if keys:held("left") then self:setPosition(self.box.x - 2, self.box.y) end
 end
 
 function Viewport:setPosition(x, y)
-	self.x = x
-	self.y = y
+	self.box.x = x
+	self.box.y = y
 end
 
 function Viewport:setSize(w, h)
-	self.w = w
-	self.h = h
+	self.box.w = w
+	self.box.h = h
 end
 
 function Viewport:centerOnPoint(x, y)
 
-	self:setPosition(x - self.w/2, y - self.h/2)
+	self:setPosition(x - self.box.w/2, y - self.box.h/2)
 end
 
 function Viewport:centerOnBox(x, y, w, h)
 
-	self:setPosition(x - self.w/2+ w/2, y - self.h/2+ h/2)
+	self:setPosition(x - self.box.w/2+ w/2, y - self.box.h/2+ h/2)
 end
 
 function Viewport:zoomIn(x, y)
-	if self.w < 100 then return end
+	if self.box.w < 100 then return end
 
-	local cx = self.x + self.w/2 
-	local cy = self.y + self.h/2
+	local cx = self.box.x + self.box.w/2 
+	local cy = self.box.y + self.box.h/2
 
 	-- TODO: how much should x and y be shifted?
-	local dw = self.w * .1
-	self.x = self.x + dw/2
-	self.w = self.w - dw/2
+	local dw = self.box.w * .1
+	self.box.x = self.box.x + dw/2
+	self.box.w = self.box.w - dw/2
 
-	local dh = self.h * .1
-	self.y = self.y + dh/2
-	self.h = self.h - dh/2
+	local dh = self.box.h * .1
+	self.box.y = self.box.y + dh/2
+	self.box.h = self.box.h - dh/2
 
 	if x and y then
 		self:centerOnPoint(x, y)
@@ -127,20 +127,20 @@ function Viewport:zoomIn(x, y)
 end
 
 function Viewport:zoomOut(x, y)
-	if self.w > 1600 then return end
+	if self.box.w > 1600 then return end
 
-	local cx = self.x + self.w/2 
-	local cy = self.y + self.h/2
+	local cx = self.box.x + self.box.w/2 
+	local cy = self.box.y + self.box.h/2
 
 	-- TODO: how much should x and y be shifted?
 
-	local dw = self.w * .1
-	self.x = self.x - dw/2
-	self.w = self.w + dw/2
+	local dw = self.box.w * .1
+	self.box.x = self.box.x - dw/2
+	self.box.w = self.box.w + dw/2
 
-	local dh = self.h * .1
-	self.y = self.y - dh/2
-	self.h = self.h + dh/2
+	local dh = self.box.h * .1
+	self.box.y = self.box.y - dh/2
+	self.box.h = self.box.h + dh/2
 
 	if x and y then
 		self:centerOnPoint(x, y)
@@ -169,8 +169,8 @@ function Viewport:translateRect(x, y, w, h)
 		local aw = scale*w
 		local ah = scale*h
 
-		local ax = scale * (x - self.x)
-		local ay = self.screenH - (scale * (y - self.y)) - ah
+		local ax = scale * (x - self.box.x)
+		local ay = self.screenH - (scale * (y - self.box.y)) - ah
 
 		return ax, ay, aw, ah
 	end
@@ -199,5 +199,10 @@ end
 
 function Viewport:getScale()
 
-	return self.screenH / self.h
+	return self.screenH / self.box.h
+end
+
+function Viewport:onScreen(box)
+	--local screen = Box:new(self.x, self.y, self.w, self.h)
+	return self.box:overlap(box)
 end

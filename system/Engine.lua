@@ -1,16 +1,15 @@
 Engine = {}
 
+--[[
+	SETUP FUNCTIONS
+]]
 function Engine:new(options)
 	local o = {}
 	setmetatable(o, self)
 	self.__index = self
 
-	self.entities = {}
-
-	self.image = love.graphics.newImage("resources/Detective.png")
-	self.image:setFilter("nearest", "nearest")
-	self.point = Point:new(0, 0)
-	self.box = Box:new(0, 0, 24, 32)
+	o:registerViewPort(Viewport:new())
+	o.entities = Util.List:new()
 	return o
 end
 
@@ -19,26 +18,56 @@ function Engine:registerViewPort(viewport)
 	self.viewport = viewport
 end
 
-function Engine:registerMap(map)
-
+function Engine:addMap(map)
 	self.map = map
+end
+
+function Engine:removeMap(map)
+	self.map = map
+end
+
+function Engine:addEntity(entity)
+	return self.entities:add(entity)
+end
+
+function Engine:removeEntity(id)
+	self.entities:remove(id)
 end
 
 function Engine:update(dt, keys)
 
-	if keys:held("w") then self.point.y = self.point.y + 4 end
-	if keys:held("s") then self.point.y = self.point.y - 4 end
-	if keys:held("d") then self.point.x = self.point.x + 4 end
-	if keys:held("a") then self.point.x = self.point.x - 4 end
-
+	for id, e in pairs(self.entities) do
+		e:update(dt, keys)
+	end
 
 	self.viewport:update(dt, keys)
-	self.map:update(dt, keys)
+
+	self.collisions()
+end
+
+function Engine:collisions()
+
 end
 
 function Engine:draw()
-	self.viewport:set()
-	--self.map:draw(self.viewport)
-	self.viewport:draw(self.image, self.point, self.box)
-	self.viewport:unset()
+	local viewport = self.viewport
+
+	viewport:set()
+
+	if self.map then self.map:draw(viewport) end
+
+	-- find onscreen entities
+	local onScreen = {}
+	for id, e in pairs(self.entities) do
+		if viewport:onScreen(e.box) then
+			table.insert(onScreen, e)
+		end
+	end
+
+	-- draw onscreen entities
+	for id, e in pairs(onScreen) do
+		e:draw(viewport)
+	end
+
+	viewport:unset()
 end 

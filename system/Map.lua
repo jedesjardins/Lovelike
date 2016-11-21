@@ -35,12 +35,14 @@ function Map:draw(viewport)
 		for y= 0, 10 do
 			for x=0, 15 do 
 				local tile = self.tiles[y][x]
-				viewport:drawQ(self.image, x*24, y*24, tile*24, 216, 24, 24)
+				local point = Point:new(x*24, y*24)
+				local quad = Box:new(tile*24, 216, 24, 24)
+				viewport:draw(self.image, point, quad)
 			end
 		end
 		viewport:setCanvas()
 	end
-	viewport:draw(self.canvas, 0, 0)
+	viewport:draw(self.canvas, Point:new(0, 0))
 end
 
 function Map:getTiles()

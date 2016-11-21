@@ -4,11 +4,11 @@ function state:enter()
 	input = Input:new()
 	engine = Engine:new()
 
-	local viewport = Viewport:new()
 	local map = Map:new()
+	engine:addMap(map)
 
-	engine:registerMap(map)
-	engine:registerViewPort(viewport)
+	local entity = Entity:new()
+	engine:addEntity(entity)
 end
 
 function state:update(dt, keys)

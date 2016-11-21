@@ -2,6 +2,24 @@ Component = Object:new{
 	dependencies = {}
 }
 
+function Component:new(listOptions)
+	local o = {}
+	setmetatable(o, self)
+	self.__index = self
+	o:init(listOptions)
+	return o
+end
+
+--[[
+	sets starting attributes of component
+	input:	listAttributes: sets initial values of the component 
+]]
+function Component:init(listAttributes)
+	for k, v in pairs(listAttributes or {}) do
+		self[k] = v
+	end
+end
+
 --[[
 	overload for components that require this function
 	iterates dependencies of this component and 
