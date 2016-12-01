@@ -46,7 +46,9 @@ function Engine:update(dt, keys)
 end
 
 function Engine:collisions()
+	local tree = Quadtree:new(self.viewport.box, 0)
 
+	
 end
 
 function Engine:draw()
@@ -70,4 +72,5 @@ function Engine:draw()
 	end
 
 	viewport:unset()
-end 
+end
+
