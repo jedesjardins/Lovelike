@@ -42,13 +42,11 @@ function Engine:update(dt, keys)
 
 	self.viewport:update(dt, keys)
 
-	self.collisions()
+	self:collisions()
 end
 
 function Engine:collisions()
 	local tree = Quadtree:new(self.viewport.box, 0)
-
-	
 end
 
 function Engine:draw()
@@ -61,7 +59,8 @@ function Engine:draw()
 	-- find onscreen entities
 	local onScreen = {}
 	for id, e in pairs(self.entities) do
-		if viewport:onScreen(e.box) then
+		-- TODO find a way to get an entities box yo
+		if viewport:onScreen(e.box or Box:new()) then
 			table.insert(onScreen, e)
 		end
 	end
